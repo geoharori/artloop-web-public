@@ -1,5 +1,10 @@
+import { requireAuth } from '../lib/auth.js';
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  if (!requireAuth(req, res)) return;
+
   const configured = {
     openai: Boolean(process.env.OPENAI_API_KEY),
     suzuri: Boolean(process.env.SUZURI_API_KEY),
