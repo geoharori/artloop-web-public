@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import health from '../api/health.js';
 import login from '../api/login.js';
 import logout from '../api/logout.js';
 import status from '../api/status.js';
@@ -24,6 +25,24 @@ process.env.SUZURI_API_KEY = 'suz_test_secret';
 process.env.OPENAI_API_KEY = 'sk_test_secret';
 process.env.THREADS_ACCESS_TOKEN = 'th_test_secret';
 process.env.THREADS_USER_ID = '123';
+
+{
+  const res = makeRes();
+  await health({ method: 'GET', headers: {} }, res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.ok, true);
+  assert.equal(res.body.service, 'ARTLOOP');
+}
+{
+  const res = makeRes();
+  await login({ method: 'POST', headers: {}, body: '{broken' }, res);
+  assert.equal(res.statusCode, 400);
+}
+{
+  const res = makeRes();
+  await login({ method: 'GET', headers: {}, body: {} }, res);
+  assert.equal(res.statusCode, 405);
+}
 
 let session = '';
 {
@@ -79,6 +98,11 @@ let session = '';
   const res = makeRes();
   await status({ headers: { cookie: `${session}x` } }, res);
   assert.equal(res.statusCode, 401);
+}
+{
+  const res = makeRes();
+  await logout({ method: 'GET', headers: { cookie: session } }, res);
+  assert.equal(res.statusCode, 405);
 }
 {
   const res = makeRes();
