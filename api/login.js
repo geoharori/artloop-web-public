@@ -6,7 +6,13 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });
   if (!authConfigured()) return res.status(503).json({ ok: false, error: 'ARTLOOP authentication is not configured' });
 
-  const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+  let body = {};
+  try {
+    body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+  } catch {
+    return res.status(400).json({ ok: false, error: 'Invalid JSON' });
+  }
+
   if (!passwordMatches(body.password)) {
     await new Promise((resolve) => setTimeout(resolve, 350));
     return res.status(401).json({ ok: false, error: 'Invalid password' });
