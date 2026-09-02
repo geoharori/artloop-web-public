@@ -1,11 +1,16 @@
+import { requireAuth, requireSameOrigin } from '../lib/auth.js';
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });
+  if (!requireSameOrigin(req, res)) return;
+  if (!requireAuth(req, res)) return;
 
   const token = process.env.ARTLOOP_GITHUB_TOKEN;
   const repo = process.env.ARTLOOP_AUTOMATION_REPO || 'geoharori/SUZURI-Sticker-Automation';
   const workflow = process.env.ARTLOOP_WORKFLOW_FILE || 'sticker-test.yml';
-  if (!token) return res.status(500).json({ ok: false, error: 'ARTLOOP_GITHUB_TOKEN is not configured' });
+  if (!token) return res.status(503).json({ ok: false, error: 'ARTLOOP_GITHUB_TOKEN is not configured' });
 
   const r = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`, {
     method: 'POST',
