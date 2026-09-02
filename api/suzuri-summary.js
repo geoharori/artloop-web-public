@@ -1,3 +1,5 @@
+import { requireAuth } from '../lib/auth.js';
+
 const SUZURI_API = 'https://suzuri.jp/api/v1';
 
 async function suzuri(path, params = {}) {
@@ -12,6 +14,9 @@ async function suzuri(path, params = {}) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  if (!requireAuth(req, res)) return;
+
   try {
     const user = await suzuri('/user');
     const userName = user.user?.name || user.user?.userName || user.name || user.userName;
